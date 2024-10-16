@@ -17,10 +17,8 @@ nimgs = 10
 datetoday = date.today().strftime("%m_%d_%y")
 datetoday2 = date.today().strftime("%d-%B-%Y")
 
-
 # Initializing VideoCapture object to access WebCam
 face_detector = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-
 
 # If these directories don't exist, create them
 if not os.path.isdir('Attendance'):
@@ -33,13 +31,11 @@ if f'Attendance-{datetoday}.csv' not in os.listdir('Attendance'):
     with open(f'Attendance/Attendance-{datetoday}.csv', 'w') as f:
         f.write('Name,Roll,Time')
 
-
-# get a number of total registered users
+# Get a number of total registered users
 def totalreg():
     return len(os.listdir('static/faces'))
 
-
-# extract the face from an image
+# Extract the face from an image
 def extract_faces(img):
     try:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -48,12 +44,10 @@ def extract_faces(img):
     except:
         return []
 
-
 # Identify face using ML model
 def identify_face(facearray):
     model = joblib.load('static/face_recognition_model.pkl')
     return model.predict(facearray)
-
 
 # A function which trains the model on all the faces available in faces folder
 def train_model():
@@ -71,7 +65,6 @@ def train_model():
     knn.fit(faces, labels)
     joblib.dump(knn, 'static/face_recognition_model.pkl')
 
-
 # Extract info from today's attendance file in attendance folder
 def extract_attendance():
     df = pd.read_csv(f'Attendance/Attendance-{datetoday}.csv')
@@ -80,7 +73,6 @@ def extract_attendance():
     times = df['Time']
     l = len(df)
     return names, rolls, times, l
-
 
 # Add Attendance of a specific user
 def add_attendance(name):
@@ -93,8 +85,7 @@ def add_attendance(name):
         with open(f'Attendance/Attendance-{datetoday}.csv', 'a') as f:
             f.write(f'\n{username},{userid},{current_time}')
 
-
-## A function to get names and rol numbers of all users
+# A function to get names and roll numbers of all users
 def getallusers():
     userlist = os.listdir('static/faces')
     names = []
@@ -108,16 +99,12 @@ def getallusers():
 
     return userlist, names, rolls, l
 
-
-## A function to delete a user folder 
+# A function to delete a user folder 
 def deletefolder(duser):
     pics = os.listdir(duser)
     for i in pics:
         os.remove(duser+'/'+i)
     os.rmdir(duser)
-
-
-
 
 ################## ROUTING FUNCTIONS #########################
 
@@ -127,15 +114,13 @@ def home():
     names, rolls, times, l = extract_attendance()
     return render_template('home.html', names=names, rolls=rolls, times=times, l=l, totalreg=totalreg(), datetoday2=datetoday2)
 
-
-## List users page
+# List users page
 @app.route('/listusers')
 def listusers():
     userlist, names, rolls, l = getallusers()
     return render_template('listusers.html', userlist=userlist, names=names, rolls=rolls, l=l, totalreg=totalreg(), datetoday2=datetoday2)
 
-
-## Delete functionality
+# Delete functionality
 @app.route('/deleteuser', methods=['GET'])
 def deleteuser():
     duser = request.args.get('user')
@@ -152,7 +137,6 @@ def deleteuser():
 
     userlist, names, rolls, l = getallusers()
     return render_template('listusers.html', userlist=userlist, names=names, rolls=rolls, l=l, totalreg=totalreg(), datetoday2=datetoday2)
-
 
 # Our main Face Recognition functionality. 
 # This function will run when we click on Take Attendance Button.
@@ -183,7 +167,6 @@ def start():
     cv2.destroyAllWindows()
     names, rolls, times, l = extract_attendance()
     return render_template('home.html', names=names, rolls=rolls, times=times, l=l, totalreg=totalreg(), datetoday2=datetoday2)
-
 
 # A function to add a new user.
 # This function will run when we add a new user.
@@ -220,7 +203,8 @@ def add():
     names, rolls, times, l = extract_attendance()
     return render_template('home.html', names=names, rolls=rolls, times=times, l=l, totalreg=totalreg(), datetoday2=datetoday2)
 
-
 # Our main function which runs the Flask App
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Get the PORT from the environment variable
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
